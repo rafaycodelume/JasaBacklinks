@@ -391,7 +391,7 @@ export const SERVICE_PAGES_DATA = [
     badge: "Academic Trust",
     badgeColor: "bg-[#f3e8fd] text-[#9334e6]",
     topAccent: "bg-[#9334e6]",
-    desc: "Publish niche-relevant, human-edited articles directly on the main homepage feed of aged, high-authority .COM, .NET, and .ORG domains with zero footprints.",
+    desc: "Publish niche-relevant, human-edited articles directly on the main homepage feed of aged, high-authority .Edu, .Gov, and .ORG domains with zero footprints.",
     features: [
       "Contextual article on aged .EDU & academic domains",
       "Massive boost to Ahrefs DR & institutional trust",
@@ -484,7 +484,7 @@ export const SERVICE_PAGES_DATA = [
     aliases: ["hidden_links", "hidden-links", "edu-gov-backlinks"],
     category: "edu_gov",
     categoryLabel: "EDU & GOV Authority Tier",
-    name: "EDU & GOV Blog Comment",
+    name: "EDU & GOV Backlink",
     shortSubtitle: "Official authority backlinks",
     heroHeadline: "Official Academic & Government",
     heroHighlight: "Stealth Authority Backlinks.",
@@ -497,7 +497,7 @@ export const SERVICE_PAGES_DATA = [
     badge: "Exclusive Tier",
     badgeColor: "bg-[#f3e8fd] text-[#9334e6]",
     topAccent: "bg-[#9334e6]",
-    desc: "Get standard EDU and GOV blog comment backlinks to diversify your backlink profile, build link diversity and support your website's overall SEO strategy.",
+    desc: "Get standard EDU and GOV backlinks to diversify your backlink profile, build link diversity and support your website's overall SEO strategy.",
     features: [
       "Authentic .AC.ID, .SCH.ID & .GO.ID extensions",
       "Competitor-proof stealth link integration",
