@@ -391,7 +391,7 @@ export const SERVICE_PAGES_DATA = [
     badge: "Academic Trust",
     badgeColor: "bg-[#f3e8fd] text-[#9334e6]",
     topAccent: "bg-[#9334e6]",
-    desc: "Skyrocket your E-E-A-T signals, AI Overview citations, and Domain Rating with contextual articles published on aged educational domains.",
+    desc: "Publish niche-relevant, human-edited articles directly on the main homepage feed of aged, high-authority .COM, .NET, and .ORG domains with zero footprints.",
     features: [
       "Contextual article on aged .EDU & academic domains",
       "Massive boost to Ahrefs DR & institutional trust",
