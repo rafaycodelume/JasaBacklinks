@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { loadEnv } from "vite";
@@ -50,7 +50,7 @@ const staticPages = {
   "/about": {
     title: "About | Jasa Backlinks",
     description:
-      "Learn how Jasa Backlinks and SeoHub Ltd engineer footprint-free DA/DR 50+ private link infrastructure for global SEO agencies and enterprise brands.",
+      "Learn how Jasa Backlinks and SeoHub Ltd build aged DA/DR 50+ private authority network infrastructure for global SEO agencies and enterprise brands.",
   },
   "/contact": {
     title: "Contact | Jasa Backlinks",
@@ -75,12 +75,12 @@ const staticPages = {
   "/terms": {
     title: "Terms of Service | Jasa Backlinks",
     description:
-      "Review our Terms of Service, DA/DR 50+ metric guarantees, 5-7 day turnaround SLAs, and 12-month link replacement policy.",
+      "Review our Terms of Service, verified DA/DR 50+ metrics, 1-2 day turnaround, and 12-month link replacement policy.",
   },
   "/terms-of-service": {
     title: "Terms of Service | Jasa Backlinks",
     description:
-      "Review our Terms of Service, DA/DR 50+ metric guarantees, 5-7 day turnaround SLAs, and 12-month link replacement policy.",
+      "Review our Terms of Service, verified DA/DR 50+ metrics, 1-2 day turnaround, and 12-month link replacement policy.",
   },
 };
 
@@ -208,6 +208,35 @@ const template = await readFile(
   "utf8",
 );
 
+// FIX 1: CSS ko inline karo, warna SSR HTML bina style ke 1 sec raw dikhega
+// dist/assets me se .css dhoondo aur usko <style> me daal do
+let inlineCss = "";
+try {
+  const assetsDir = path.join(outputDirectory, "assets");
+  const files = await readdir(assetsDir);
+  const cssFiles = files.filter((f) => f.endsWith(".css"));
+  for (const f of cssFiles) {
+    const css = await readFile(path.join(assetsDir, f), "utf8");
+    inlineCss += `\n/* inlined ${f} for SSR - no FOUC */\n${css}\n`;
+  }
+  console.log(`Inlined ${cssFiles.length} CSS file(s) for SSR`);
+} catch (e) {
+  console.warn("CSS inline failed, FOUC may remain:", e.message);
+}
+
+// FIX 2: Prerender wale content ko thoda basic style de do, taake agar CSS late bhi aaye to raw na lage
+const prerenderFallbackStyle = `<style data-prerender-fallback>
+  #root main{font-family:Inter,system-ui,-apple-system,sans-serif;line-height:1.6;color:#111;max-width:1100px;margin:0 auto;padding:24px}
+  #root main h1{font-size:32px;line-height:1.2;margin:0 0 12px}
+  #root main h2{font-size:22px;margin:28px 0 10px}
+  #root main h3{font-size:17px;margin:16px 0 6px}
+  #root main p{margin:0 0 12px;color:#333}
+  #root main ul{padding-left:20px;margin:0 0 16px}
+  #root main li{margin-bottom:8px}
+  #root main a{color:#1a73e8}
+  #root main nav{font-size:14px;color:#666;margin-bottom:16px}
+</style>`;
+
 for (const route of routes) {
   const { title, description, content, schema } = getRouteContent(route);
   const canonicalUrl = `${siteUrl}${route === "/" ? "" : route}`;
@@ -228,8 +257,6 @@ for (const route of routes) {
       : "",
   ].join("\n    ");
 
-  // FIX: Pehle index.html wale purane title / meta ko saaf karo, warna 2 title ban jate hain
-  // aur Google pehla wala Loading wala utha leta hai
   const cleanedTemplate = template
     .replace(/<title[^>]*>.*?<\/title>/gis, "")
     .replace(/<meta[^>]*name=["']description["'][^>]*>/gis, "")
@@ -241,8 +268,11 @@ for (const route of routes) {
       "",
     );
 
+  // FIX: head me meta + inline CSS + fallback style teeno daalo
+  const headInjection = `${metaTags}\n    ${prerenderFallbackStyle}\n    ${inlineCss ? `<style data-inlined-css>${inlineCss}</style>` : ""}`;
+
   const html = cleanedTemplate
-    .replace("<head>", `<head>\n    ${metaTags}`)
+    .replace("<head>", `<head>\n    ${headInjection}`)
     .replace(/<div id="root">\s*<\/div>/, `<div id="root">${content}</div>`);
   const outputPath =
     route === "/"
