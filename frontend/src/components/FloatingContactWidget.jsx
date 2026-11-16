@@ -7,8 +7,6 @@ export default function FloatingContactWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const widgetRef = useRef(null);
 
-  const avatarUrl = "/SeoHubLogo.png";
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true);
@@ -31,7 +29,7 @@ export default function FloatingContactWidget() {
   if (!isVisible) return null;
 
   const TEAM_CONTACTS = {
-    whatsappUrl: "https://wa.me/447598789693",
+    whatsappUrl: "https://wa.me/447397691375",
     telegramUrl: "https://t.me/Jasa_Backlinks",
     teamsUrl: "https://teams.live.com/l/invite/FEAMqmc6ahIpaIbVw?v=g1",
   };
@@ -60,8 +58,8 @@ export default function FloatingContactWidget() {
               {/* Clean Fixed PNG Logo Container */}
               <div className="relative w-11 h-11 rounded-[14px] bg-white border border-[#e8eaed] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
                 <img
-                  src={avatarUrl}
-                  alt="SeoHub Logo"
+                  src="/favicon.svg"
+                  alt="Jasa Backlinks Logo"
                   className="w-full h-full object-contain"
                 />
                 <span className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-[#34a853] border-2 border-white" />
@@ -70,7 +68,7 @@ export default function FloatingContactWidget() {
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h2 className="gw-font-display text-[15.5px] font-semibold text-[#202124] leading-tight truncate">
-                    Chat with SeoHub
+                    Contact Now
                   </h2>
                   <span className="text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] px-2 py-0.2 rounded-full shrink-0">
                     24/7 Desk

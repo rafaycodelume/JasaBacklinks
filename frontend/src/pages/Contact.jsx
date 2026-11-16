@@ -5,8 +5,8 @@ import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const TEAM_CONTACTS = {
-  whatsappUrl: "https://wa.me/447598789693",
-  whatsappLabel: "+44 7598789693",
+  whatsappUrl: "https://wa.me/447397691375",
+  whatsappLabel: "+44 7397691375",
   telegramUrl: "https://t.me/Jasa_Backlinks",
   telegramLabel: "@Jasa_Backlinks",
   supportEmail: "hello@jasabacklinks.net",
