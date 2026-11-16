@@ -7,8 +7,8 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 const TEAM_CONTACTS = {
   whatsappUrl: "https://wa.me/447598789693",
   whatsappLabel: "+44 7598789693",
-  telegramUrl: "https://t.me/SEOHUBLTD",
-  telegramLabel: "@SEOHUBLTD",
+  telegramUrl: "https://t.me/Jasa_Backlinks",
+  telegramLabel: "@Jasa_Backlinks",
   supportEmail: "hello@jasabacklinks.net",
 };
 

@@ -32,7 +32,7 @@ export default function FloatingContactWidget() {
 
   const TEAM_CONTACTS = {
     whatsappUrl: "https://wa.me/447598789693",
-    telegramUrl: "https://t.me/SEOHUBLTD",
+    telegramUrl: "https://t.me/Jasa_Backlinks",
     teamsUrl: "https://teams.live.com/l/invite/FEAMqmc6ahIpaIbVw?v=g1",
   };
 
