@@ -86,6 +86,62 @@ const STRIPE_ELEMENT_OPTIONS = {
 
 // PIECEWISE SLIDER MAPPING HELPERS (LOCKS THUMB TO EXACT VISUAL LABELS)
 const SLIDER_STOPS = [0, 1, 1000, 2000, 3000, 4000, 5000];
+const GUEST_POSTING_SLIDER_STOPS = [0, 1, 10, 50, 100, 1000, 5000];
+const GUEST_POSTING_SLIDER_POSITIONS = [100, 200, 300, 400, 500, 600];
+const GUEST_POSTING_SLIDER_VALUES = [1, 10, 50, 100, 1000, 5000];
+
+function isGuestPostingService(id) {
+  return Boolean(getGuestPostingItem(id));
+}
+
+// Guest Posting: 1,2,3,4,5... step 1, no 50-snap. Piecewise between stops [1,10,50,100,1000,5000]
+function guestPostingQtyToSliderPos(qty) {
+  if (!qty || qty <= 0) return 0;
+  if (qty <= 1) return 100;
+  if (qty >= 5000) return 600;
+  for (let i = 0; i < GUEST_POSTING_SLIDER_VALUES.length - 1; i++) {
+    const lowVal = GUEST_POSTING_SLIDER_VALUES[i];
+    const highVal = GUEST_POSTING_SLIDER_VALUES[i + 1];
+    const lowPos = GUEST_POSTING_SLIDER_POSITIONS[i];
+    const highPos = GUEST_POSTING_SLIDER_POSITIONS[i + 1];
+    if (qty >= lowVal && qty <= highVal) {
+      return (
+        lowPos + ((qty - lowVal) / (highVal - lowVal)) * (highPos - lowPos)
+      );
+    }
+  }
+  return 100;
+}
+
+function guestPostingSliderPosToQty(pos) {
+  const numPos = Number(pos) || 0;
+  if (numPos < 50) return 0;
+  if (numPos <= 100) return 1;
+  if (numPos >= 600) return 5000;
+  for (let i = 0; i < GUEST_POSTING_SLIDER_POSITIONS.length; i++) {
+    if (Math.abs(numPos - GUEST_POSTING_SLIDER_POSITIONS[i]) <= 6) {
+      return GUEST_POSTING_SLIDER_VALUES[i];
+    }
+  }
+  for (let i = 0; i < GUEST_POSTING_SLIDER_POSITIONS.length - 1; i++) {
+    const lowPos = GUEST_POSTING_SLIDER_POSITIONS[i];
+    const highPos = GUEST_POSTING_SLIDER_POSITIONS[i + 1];
+    if (numPos >= lowPos && numPos <= highPos) {
+      const lowVal = GUEST_POSTING_SLIDER_VALUES[i];
+      const highVal = GUEST_POSTING_SLIDER_VALUES[i + 1];
+      const raw =
+        lowVal + ((numPos - lowPos) / (highPos - lowPos)) * (highVal - lowVal);
+      return Math.max(1, Math.min(5000, Math.round(raw)));
+    }
+  }
+  return 1;
+}
+
+function getServiceQtyStep(id, minQty) {
+  if (isGuestPostingService(id)) return 1;
+  if (minQty === 500) return 500;
+  return 50;
+}
 
 function qtyToSliderPos(qty) {
   if (!qty || qty <= 0) return 0;
@@ -1013,10 +1069,14 @@ function PackageEstimator() {
   };
 
   const handleSliderPosChange = (id, sliderPosValue, minQty) => {
-    const mappedQty =
-      minQty === 500
-        ? completeSeoSliderPosToQty(sliderPosValue)
-        : sliderPosToQty(sliderPosValue);
+    let mappedQty;
+    if (isGuestPostingService(id)) {
+      mappedQty = guestPostingSliderPosToQty(sliderPosValue);
+    } else if (minQty === 500) {
+      mappedQty = completeSeoSliderPosToQty(sliderPosValue);
+    } else {
+      mappedQty = sliderPosToQty(sliderPosValue);
+    }
     setServiceQty(id, mappedQty);
   };
 
@@ -1182,7 +1242,8 @@ function PackageEstimator() {
               <span className="text-[#1a73e8]">SEO package.</span>
             </h2>
             <p className="gw-font-text text-[14.5px] sm:text-[16px] text-[#5f6368] leading-[1.6]">
-              Choose from all 13 services, starting at 50 links (500 for the
+              Choose from all 13 services. Guest Posting starts at 1 link (1, 2,
+              3, 4, 5...), other services start at 50 links (500 for the
               Complete SEO Package), and combine packages in real time.
             </p>
           </div>
@@ -1243,12 +1304,16 @@ function PackageEstimator() {
                   const currentQty = cart[service.id] || 0;
                   const isActive = currentQty > 0;
                   const minQty = service.minQty || 50;
-                  const serviceSliderStops =
-                    minQty === 500
+                  const isGuest = isGuestPostingService(service.id);
+                  const qtyStep = getServiceQtyStep(service.id, minQty);
+                  const serviceSliderStops = isGuest
+                    ? GUEST_POSTING_SLIDER_STOPS
+                    : minQty === 500
                       ? [0, 500, 1000, 2000, 3000, 4000, 5000]
                       : SLIDER_STOPS;
-                  const sliderPos =
-                    minQty === 500
+                  const sliderPos = isGuest
+                    ? guestPostingQtyToSliderPos(currentQty)
+                    : minQty === 500
                       ? completeSeoQtyToSliderPos(currentQty)
                       : qtyToSliderPos(currentQty);
                   const fillPercent = Math.min(
@@ -1528,7 +1593,7 @@ function PackageEstimator() {
                                   service.id,
                                   currentQty <= minQty
                                     ? 0
-                                    : currentQty - (minQty === 500 ? 500 : 50),
+                                    : currentQty - qtyStep,
                                 )
                               }
                               className="w-7 h-7 rounded-full text-[#5f6368] hover:text-[#202124] active:bg-[#e8eaed] hover:bg-[#f1f3f4] flex items-center justify-center transition-colors cursor-pointer font-medium"
@@ -1558,7 +1623,7 @@ function PackageEstimator() {
                                   service.id,
                                   currentQty === 0
                                     ? minQty
-                                    : currentQty + (minQty === 500 ? 500 : 50),
+                                    : currentQty + qtyStep,
                                 )
                               }
                               className="w-7 h-7 rounded-full text-[#1a73e8] active:bg-[#d2e3fc] hover:bg-[#e8f0fe] flex items-center justify-center transition-colors cursor-pointer font-medium"
@@ -1637,8 +1702,8 @@ function PackageEstimator() {
                           No placements selected
                         </p>
                         <p className="text-[11.5px] text-[#9aa0a6] mt-0.5">
-                          Add services from 50 links; Complete SEO starts at 500
-                          links.
+                          Guest Posting from 1 link; other services from 50
+                          links; Complete SEO starts at 500 links.
                         </p>
                       </div>
                     ) : (
