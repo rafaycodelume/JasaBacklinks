@@ -12,6 +12,7 @@ const {
 const webhookController = require("./controllers/webhookController");
 const paymentController = require("./controllers/paymentController");
 const contactController = require("./controllers/contactController");
+const adminRoutes = require("./routes/cmsRoutes");
 const {
   validateBody,
   cartSchema,
@@ -45,6 +46,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 app.use("/api", apiLimiter);
+app.use("/api/admin", adminRoutes);
 
 // 4. HEALTH CHECK FOR RENDER & UPTIMEROBOT
 app.get("/", (req, res) => {
