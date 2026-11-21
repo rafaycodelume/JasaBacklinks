@@ -3,8 +3,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import axios from "axios";
 import { FALLBACK_BLOGS } from "./Blog";
 
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const DEFAULT_CATEGORIES = [
   { id: "cat-1", name: "PBN Strategy", color: "blue" },
@@ -63,7 +62,7 @@ function compressImageFile(file, maxWidth = 1200, quality = 0.82) {
 export default function AdminBlog() {
   // --- SECURITY & AUTHENTICATION STATES ---
   const [authToken, setAuthToken] = useState(
-    () => sessionStorage.getItem("jasa_admin_token") || ""
+    () => sessionStorage.getItem("jasa_admin_token") || "",
   );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
@@ -142,32 +141,44 @@ export default function AdminBlog() {
   }, [lockoutUntil]);
 
   // Verify token & load CMS data on mount
-  const fetchCmsData = useCallback(async (tokenToUse) => {
-    const headers = { Authorization: `Bearer ${tokenToUse || authToken}` };
-    try {
-      const [blogsRes, catsRes, mediaRes] = await Promise.allSettled([
-        axios.get(`${BACKEND_URL}/api/blogs`, { headers }),
-        axios.get(`${BACKEND_URL}/api/categories`, { headers }),
-        axios.get(`${BACKEND_URL}/api/media`, { headers }),
-      ]);
+  const fetchCmsData = useCallback(
+    async (tokenToUse) => {
+      const headers = { Authorization: `Bearer ${tokenToUse || authToken}` };
+      try {
+        const [blogsRes, catsRes, mediaRes] = await Promise.allSettled([
+          axios.get(`${BACKEND_URL}/api/blogs`, { headers }),
+          axios.get(`${BACKEND_URL}/api/categories`, { headers }),
+          axios.get(`${BACKEND_URL}/api/media`, { headers }),
+        ]);
 
-      if (blogsRes.status === "fulfilled" && Array.isArray(blogsRes.value.data)) {
-        setBlogs(blogsRes.value.data);
-        localStorage.setItem(
-          "jasa_blogs_cache",
-          JSON.stringify(blogsRes.value.data)
-        );
+        if (
+          blogsRes.status === "fulfilled" &&
+          Array.isArray(blogsRes.value.data)
+        ) {
+          setBlogs(blogsRes.value.data);
+          localStorage.setItem(
+            "jasa_blogs_cache",
+            JSON.stringify(blogsRes.value.data),
+          );
+        }
+        if (
+          catsRes.status === "fulfilled" &&
+          Array.isArray(catsRes.value.data)
+        ) {
+          setCategories(catsRes.value.data);
+        }
+        if (
+          mediaRes.status === "fulfilled" &&
+          Array.isArray(mediaRes.value.data)
+        ) {
+          setMediaLibrary(mediaRes.value.data);
+        }
+      } catch {
+        // Fallback to local cache if offline
       }
-      if (catsRes.status === "fulfilled" && Array.isArray(catsRes.value.data)) {
-        setCategories(catsRes.value.data);
-      }
-      if (mediaRes.status === "fulfilled" && Array.isArray(mediaRes.value.data)) {
-        setMediaLibrary(mediaRes.value.data);
-      }
-    } catch {
-      // Fallback to local cache if offline
-    }
-  }, [authToken]);
+    },
+    [authToken],
+  );
 
   useEffect(() => {
     if (!authToken) return;
@@ -210,7 +221,7 @@ export default function AdminBlog() {
         localStorage.setItem("jasa_admin_lockout", String(resp.lockedUntil));
         setLockoutSecondsLeft(
           resp.remainingSeconds ||
-            Math.ceil((resp.lockedUntil - Date.now()) / 1000)
+            Math.ceil((resp.lockedUntil - Date.now()) / 1000),
         );
       }
       if (typeof resp.attemptsLeft === "number") {
@@ -218,7 +229,7 @@ export default function AdminBlog() {
       }
       setAuthError(
         resp.error ||
-          "Unauthorised access attempt blocked. Verify your ADMIN_PASSWORD."
+          "Unauthorised access attempt blocked. Verify your ADMIN_PASSWORD.",
       );
     }
   };
@@ -228,7 +239,7 @@ export default function AdminBlog() {
       await axios.post(
         `${BACKEND_URL}/api/admin/logout`,
         {},
-        { headers: { Authorization: `Bearer ${authToken}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } },
       );
     } catch {
       // Ignore network error on logout
@@ -266,7 +277,9 @@ export default function AdminBlog() {
     }
     const density =
       wordCount > 0 && kw
-        ? Number(((kwCount * kw.split(" ").length) / wordCount) * 100).toFixed(2)
+        ? Number(((kwCount * kw.split(" ").length) / wordCount) * 100).toFixed(
+            2,
+          )
         : 0;
 
     // First 10% check
@@ -283,17 +296,16 @@ export default function AdminBlog() {
     const kwInSubheadings = Boolean(kw && subheadingsText.includes(kw));
 
     // Links & Media check
-    const hasInternalLink = /href=["'](\/|https?:\/\/(www\.)?jasabacklinks)/i.test(
-      content
-    );
+    const hasInternalLink =
+      /href=["'](\/|https?:\/\/(www\.)?jasabacklinks)/i.test(content);
     const hasExternalLink = /href=["']https?:\/\/(?!.*jasabacklinks)/i.test(
-      content
+      content,
     );
     const hasImageOrFeatured = Boolean(image.trim()) || /<img /i.test(content);
     const hasKeywordInAlt = Boolean(
       kw &&
-        (imageAlt.toLowerCase().includes(kw) ||
-          new RegExp(`alt=["'][^"']*${kw}`, "i").test(content))
+      (imageAlt.toLowerCase().includes(kw) ||
+        new RegExp(`alt=["'][^"']*${kw}`, "i").test(content)),
     );
 
     // Readability checks
@@ -314,7 +326,7 @@ export default function AdminBlog() {
     ];
     const hasPowerWord = powerWords.some((pw) => titleLower.includes(pw));
     const kwStartsTitle = Boolean(
-      kw && titleLower.indexOf(kw) >= 0 && titleLower.indexOf(kw) <= 25
+      kw && titleLower.indexOf(kw) >= 0 && titleLower.indexOf(kw) <= 25,
     );
     const hasListsOrQuotes = /<(ul|ol|blockquote)/i.test(content);
 
@@ -362,7 +374,8 @@ export default function AdminBlog() {
       },
       {
         label: `Keyword Density (${density}% — Ideal: 0.5% to 2.5%, Found ${kwCount}x)`,
-        passed: kwCount >= 2 && Number(density) >= 0.4 && Number(density) <= 3.0,
+        passed:
+          kwCount >= 2 && Number(density) >= 0.4 && Number(density) <= 3.0,
         points: 8,
         hint: "Use your Focus Keyword 2–6 times naturally across the article.",
       },
@@ -386,8 +399,7 @@ export default function AdminBlog() {
       },
       {
         label: `Meta Description length (${excerpt.trim().length} / 160 chars)`,
-        passed:
-          excerpt.trim().length >= 90 && excerpt.trim().length <= 165,
+        passed: excerpt.trim().length >= 90 && excerpt.trim().length <= 165,
         points: 4,
         hint: "Keep your Meta Description between 90 and 160 characters.",
       },
@@ -440,7 +452,7 @@ export default function AdminBlog() {
     ];
     const totalScore = allChecks.reduce(
       (sum, item) => sum + (item.passed ? item.points : 0),
-      0
+      0,
     );
 
     return {
@@ -454,16 +466,7 @@ export default function AdminBlog() {
       titleChecks,
       contentChecks,
     };
-  }, [
-    title,
-    seoTitle,
-    slug,
-    focusKeyword,
-    excerpt,
-    content,
-    image,
-    imageAlt,
-  ]);
+  }, [title, seoTitle, slug, focusKeyword, excerpt, content, image, imageAlt]);
 
   // Auto-generate slug & default SEO title when typing main title
   const handleTitleChange = (val) => {
@@ -473,7 +476,7 @@ export default function AdminBlog() {
         val
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
+          .replace(/^-|-$/g, ""),
       );
     }
     if (!seoTitle) {
@@ -482,7 +485,11 @@ export default function AdminBlog() {
   };
 
   // Rich Content Formatting Toolbar Helper
-  const insertTag = (openTag, closeTag = "", defaultText = "Your text here") => {
+  const insertTag = (
+    openTag,
+    closeTag = "",
+    defaultText = "Your text here",
+  ) => {
     const textarea = contentRef.current;
     if (!textarea) {
       setContent((prev) => `${prev}\n${openTag}${defaultText}${closeTag}`);
@@ -547,8 +554,7 @@ export default function AdminBlog() {
         "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
       imageAlt: imageAlt || focusKeyword || title,
       excerpt:
-        excerpt.trim() ||
-        content.replace(/<[^>]+>/g, "").slice(0, 155) + "...",
+        excerpt.trim() || content.replace(/<[^>]+>/g, "").slice(0, 155) + "...",
       content,
       tags: parsedTags,
       status,
@@ -595,7 +601,7 @@ export default function AdminBlog() {
     setSlug(post.slug || "");
     setFocusKeyword(post.focusKeyword || "");
     setTagsInput(
-      Array.isArray(post.tags) ? post.tags.join(", ") : "DA/DR 50+, PBN Links"
+      Array.isArray(post.tags) ? post.tags.join(", ") : "DA/DR 50+, PBN Links",
     );
     setCategory(post.category || "PBN Strategy");
     setAuthor(post.author || "SeoHub Technical Team");
@@ -631,7 +637,7 @@ export default function AdminBlog() {
       const { data } = await axios.post(
         `${BACKEND_URL}/api/categories`,
         { name: newCategoryName.trim(), color: newCategoryColor },
-        { headers: { Authorization: `Bearer ${authToken}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } },
       );
       if (data.categories) setCategories(data.categories);
       setCategory(newCategoryName.trim());
@@ -657,7 +663,7 @@ export default function AdminBlog() {
     try {
       const { data } = await axios.delete(
         `${BACKEND_URL}/api/categories/${encodeURIComponent(catId)}`,
-        { headers: { Authorization: `Bearer ${authToken}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } },
       );
       if (data.categories) setCategories(data.categories);
       setStatusBanner({
@@ -678,13 +684,12 @@ export default function AdminBlog() {
       const compressedDataUrl = await compressImageFile(file);
       const cleanName =
         mediaUploadName.trim() || file.name.replace(/\.[^/.]+$/, "");
-      const cleanAlt =
-        mediaUploadAlt.trim() || focusKeyword || cleanName;
+      const cleanAlt = mediaUploadAlt.trim() || focusKeyword || cleanName;
 
       const { data } = await axios.post(
         `${BACKEND_URL}/api/media`,
         { name: cleanName, alt: cleanAlt, url: compressedDataUrl },
-        { headers: { Authorization: `Bearer ${authToken}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } },
       );
       if (data.media) setMediaLibrary(data.media);
       setMediaUploadName("");
@@ -714,7 +719,7 @@ export default function AdminBlog() {
       const { data } = await axios.post(
         `${BACKEND_URL}/api/media`,
         { name: cleanName, alt: cleanAlt, url: mediaExternalUrl.trim() },
-        { headers: { Authorization: `Bearer ${authToken}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } },
       );
       if (data.media) setMediaLibrary(data.media);
       setMediaExternalUrl("");
@@ -752,7 +757,7 @@ export default function AdminBlog() {
           item.alt || item.name
         }" class="w-full rounded-[16px] border border-[#e8eaed]" />\n  <figcaption class="text-center text-[12px] text-[#5f6368] mt-2">`,
         `</figcaption>\n</figure>\n`,
-        item.alt || item.name
+        item.alt || item.name,
       );
     }
     setIsMediaModalOpen(false);
@@ -914,8 +919,14 @@ export default function AdminBlog() {
             {[
               { id: "editor", label: "1. Article & Rank Math Studio" },
               { id: "articles", label: `2. Articles (${blogs.length})` },
-              { id: "media", label: `3. Media Library (${mediaLibrary.length})` },
-              { id: "categories", label: `4. Categories (${categories.length})` },
+              {
+                id: "media",
+                label: `3. Media Library (${mediaLibrary.length})`,
+              },
+              {
+                id: "categories",
+                label: `4. Categories (${categories.length})`,
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -989,7 +1000,9 @@ export default function AdminBlog() {
                   <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#e8eaed]">
                     <div>
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-[#1a73e8] block">
-                        {editingId ? "Editing Existing Article" : "New SEO Article"}
+                        {editingId
+                          ? "Editing Existing Article"
+                          : "New SEO Article"}
                       </span>
                       <h2 className="gw-font-display text-[20px] font-medium text-[#202124]">
                         Content & Metadata Composer
@@ -1161,7 +1174,7 @@ export default function AdminBlog() {
                                 "</h2>\n",
                                 focusKeyword
                                   ? `Why ${focusKeyword} Drive Rankings`
-                                  : "Section Subheading"
+                                  : "Section Subheading",
                               )
                             }
                             className="px-2.5 py-1 rounded bg-white text-[11px] font-semibold text-[#202124] hover:bg-[#e8f0fe] hover:text-[#1a73e8] cursor-pointer"
@@ -1196,7 +1209,7 @@ export default function AdminBlog() {
                             onClick={() =>
                               insertTag(
                                 "<ul>\n  <li><strong>Point 1:</strong> ",
-                                "</li>\n  <li><strong>Point 2:</strong> High authority placement</li>\n</ul>\n"
+                                "</li>\n  <li><strong>Point 2:</strong> High authority placement</li>\n</ul>\n",
                               )
                             }
                             className="px-2.5 py-1 rounded bg-white text-[11px] font-medium text-[#202124] hover:bg-[#e8f0fe] cursor-pointer"
@@ -1218,7 +1231,7 @@ export default function AdminBlog() {
                               insertTag(
                                 '<a href="/services/homepage-post">',
                                 "</a>",
-                                "DA/DR 50+ Homepage Post service"
+                                "DA/DR 50+ Homepage Post service",
                               )
                             }
                             className="px-2.5 py-1 rounded bg-white text-[11px] font-medium text-[#1a73e8] hover:bg-[#e8f0fe] cursor-pointer"
@@ -1231,7 +1244,7 @@ export default function AdminBlog() {
                               insertTag(
                                 '<a href="https://developers.google.com/search" target="_blank" rel="noopener noreferrer">',
                                 "</a>",
-                                "Google Search Central"
+                                "Google Search Central",
                               )
                             }
                             className="px-2.5 py-1 rounded bg-white text-[11px] font-medium text-[#1e8e3e] hover:bg-[#e6f4ea] cursor-pointer"
@@ -1292,7 +1305,7 @@ export default function AdminBlog() {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#1a73e8] block">
-                            Rank Math Snippet Editor
+                            SEO Checker
                           </span>
                           <h2 className="gw-font-display text-[16px] font-medium text-[#202124]">
                             Google SERP Preview
@@ -1467,7 +1480,7 @@ export default function AdminBlog() {
                         Real-Time SEO Detector
                       </span>
                       <h2 className="gw-font-display text-[20px] font-medium text-[#202124]">
-                        Rank Math SEO Score
+                        SEO Score Checker
                       </h2>
                       <span
                         className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1 ${scoreColor.bg} ${scoreColor.text}`}
@@ -1478,7 +1491,10 @@ export default function AdminBlog() {
 
                     {/* Circular Score Gauge */}
                     <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                      <svg
+                        className="w-full h-full -rotate-90"
+                        viewBox="0 0 36 36"
+                      >
                         <path
                           className="text-[#f1f3f4]"
                           strokeWidth="3.5"
@@ -1590,7 +1606,7 @@ export default function AdminBlog() {
                       },
                     ].map((group) => {
                       const failedCount = group.items.filter(
-                        (i) => !i.passed
+                        (i) => !i.passed,
                       ).length;
                       const isOpen = openSeoGroup[group.key];
                       return (
@@ -1929,7 +1945,9 @@ export default function AdminBlog() {
                   >
                     <option value="blue">Google Blue (#1a73e8)</option>
                     <option value="red"> Regional Red (#ea4335)</option>
-                    <option value="purple">Institutional Purple (#9334e6)</option>
+                    <option value="purple">
+                      Institutional Purple (#9334e6)
+                    </option>
                     <option value="green">Verified Green (#34a853)</option>
                   </select>
                 </div>
