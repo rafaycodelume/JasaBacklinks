@@ -13,6 +13,8 @@ const webhookController = require("./controllers/webhookController");
 const paymentController = require("./controllers/paymentController");
 const contactController = require("./controllers/contactController");
 const adminRoutes = require("./routes/cmsRoutes");
+const contentRoutes = require("./routes/contentRoutes");
+const cmsController = require("./controllers/cmsController");
 const {
   validateBody,
   cartSchema,
@@ -47,6 +49,7 @@ app.use(
 app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 app.use("/api", apiLimiter);
 app.use("/api/admin", adminRoutes);
+app.use("/api", contentRoutes);
 
 // 4. HEALTH CHECK FOR RENDER & UPTIMEROBOT
 app.get("/", (req, res) => {
@@ -105,7 +108,11 @@ if (!process.env.MONGODB_URI) {
 
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB Connected Successfully"))
+  .then(async () => {
+    console.log("MongoDB Connected Successfully");
+    await cmsController.ensureCmsDefaults();
+    console.log("CMS default categories and media are ready");
+  })
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
 const PORT = process.env.PORT || 5000;
